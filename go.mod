@@ -1,3 +1,3 @@
-module github.com/bjlePersonalGithub/Pokedex_REPL
+module github.com/bjlePersonalGithub/PokeCLI
 
 go 1.21
