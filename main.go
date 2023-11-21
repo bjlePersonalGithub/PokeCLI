@@ -27,7 +27,8 @@ func main() {
 		command, commandExist := commands[userInput]
 
 		if commandExist {
-			fmt.Println(command.name)
+			fmt.Println("Welcome to the Pokedex!\n" + "Usage:\n\n")
+			command.callback()
 		} else {
 			fmt.Println("Invalid Command")
 		}
