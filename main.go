@@ -2,15 +2,30 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"log"
+	"net/http"
 	"os"
+	"strings"
 )
 
 type cliCommand struct {
 	name        string
 	description string
 	callback    func() error
+}
+
+type mapData struct {
+	Count    int    `json:"count"`
+	Next     string `json:"next"`
+	Previous any    `json:"previous"`
+	Results  []struct {
+		Name string `json:"name"`
+		URL  string `json:"url"`
+	} `json:"results"`
 }
 
 func main() {
@@ -24,11 +39,21 @@ func main() {
 		userInput := scanner.Text()
 		commands := getCLICommands()
 
-		command, commandExist := commands[userInput]
-
-		if commandExist {
-			fmt.Println("Welcome to the Pokedex!\n" + "Usage:\n\n")
-			command.callback()
+		if command, commandExist := commands[userInput]; commandExist {
+			commandName := strings.ToLower(command.name)
+			if commandName == "help" {
+				fmt.Println("\nWelcome to the Pokedex!\n" + "Usage:\n")
+				for _, com := range commands {
+					fmt.Println(com.name + ": " + com.description)
+				}
+			}
+			if commandName == "exit" {
+				return
+			}
+			if commandName == "map" {
+				commandMap()
+			}
+			fmt.Println()
 		} else {
 			fmt.Println("Invalid Command")
 		}
@@ -47,6 +72,10 @@ func getCLICommands() map[string]cliCommand {
 			name:        "exit",
 			description: "Exit the Pokedex",
 			callback:    commandExit,
+		}, "map": {
+			name:        "map",
+			description: "Display the map",
+			callback:    commandMap,
 		},
 	}
 }
@@ -58,4 +87,28 @@ func commandHelp() error {
 
 func commandExit() error {
 	return errors.New("Exit Program")
+}
+
+func commandMap() error {
+	res, err := http.Get("https://pokeapi.co/api/v2/location/")
+	if err != nil {
+		return err
+	}
+	body, err := io.ReadAll(res.Body)
+	res.Body.Close()
+	if res.StatusCode > 299 {
+		log.Fatalf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
+	}
+	if err != nil {
+		return err
+	}
+	mapJson := mapData{}
+	umarshalErr := json.Unmarshal(body, &mapJson)
+
+	if umarshalErr != nil {
+		return umarshalErr
+	}
+
+	fmt.Println(mapJson.Results)
+	return nil
 }
