@@ -34,12 +34,7 @@ var mapState = struct {
 func main() {
 	for {
 		fmt.Print("Pokedex > ")
-		scanner := bufio.NewScanner(os.Stdin)
-		scanner.Scan()
-		if err := scanner.Err(); err != nil {
-			fmt.Fprintln(os.Stderr, "reading standard input:", err)
-		}
-		userInput := scanner.Text()
+		userInput := getUserInput()
 		commands := getCLICommands()
 
 		command := commands[userInput]
@@ -63,6 +58,16 @@ func main() {
 		}
 
 	}
+}
+
+func getUserInput() string {
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+	if err := scanner.Err(); err != nil {
+		fmt.Fprintln(os.Stderr, "reading standard input:", err)
+		return ""
+	}
+	return scanner.Text()
 }
 
 func getCLICommands() map[string]cliCommand {
