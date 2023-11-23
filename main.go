@@ -42,29 +42,24 @@ func main() {
 		userInput := scanner.Text()
 		commands := getCLICommands()
 
-		if command, commandExist := commands[userInput]; commandExist {
-			commandName := strings.ToLower(command.name)
-			if commandName == "help" {
-				fmt.Println("\nWelcome to the Pokedex!\n" + "Usage:\n")
-				for _, com := range commands {
-					fmt.Println(com.name + ": " + com.description)
-				}
+		command := commands[userInput]
+		switch strings.ToLower(command.name) {
+		case "help":
+			fmt.Println("\nWelcome to the Pokedex!\n" + "Usage:\n")
+			for _, com := range commands {
+				fmt.Println(com.name + ": " + com.description)
 			}
-			if commandName == "exit" {
-				return
+		case "map":
+			if err := commandMap(); err != nil {
+				fmt.Println("Error fetching maps:", err)
 			}
-			if commandName == "map" {
-				if err := commandMap(); err != nil {
-					fmt.Println("Error fetching maps:", err)
-				}
+		case "mapb":
+			if err := commandMapBack(); err != nil {
+				fmt.Println("Error fetching previous maps:", err)
 			}
-			if commandName == "mapb" {
-				if err := commandMapBack(); err != nil {
-					fmt.Println("Error fetching previous maps:", err)
-				}
-			}
-			fmt.Println()
-		} else {
+		case "exit":
+			return
+		default:
 			fmt.Println("Invalid Command")
 		}
 
@@ -82,14 +77,16 @@ func getCLICommands() map[string]cliCommand {
 			name:        "exit",
 			description: "Exit the Pokedex",
 			callback:    commandExit,
-		}, "map": {
+		},
+		"map": {
 			name:        "map",
-			description: "Display the map",
+			description: "Display the next 20 map",
 			callback:    commandMap,
-		}, "mapb": {
-			name:        "map",
-			description: "Display the map",
-			callback:    commandMap,
+		},
+		"mapb": {
+			name:        "mapb",
+			description: "Display the previous 20 maps",
+			callback:    commandMapBack,
 		},
 	}
 }
