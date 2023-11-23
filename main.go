@@ -45,9 +45,8 @@ func main() {
 		command := commands[userInput]
 		switch strings.ToLower(command.name) {
 		case "help":
-			fmt.Println("\nWelcome to the Pokedex!\n" + "Usage:\n")
-			for _, com := range commands {
-				fmt.Println(com.name + ": " + com.description)
+			if err := commandHelp(); err != nil {
+				fmt.Println("Error displaying help:", err)
 			}
 		case "map":
 			if err := commandMap(); err != nil {
@@ -92,10 +91,12 @@ func getCLICommands() map[string]cliCommand {
 }
 
 func commandHelp() error {
-	// Your implementation here
+	fmt.Println("\nWelcome to the Pokedex!\n" + "Usage:\n")
+	for _, com := range getCLICommands() {
+		fmt.Println(com.name + ": " + com.description)
+	}
 	return nil
 }
-
 func commandExit() error {
 	return errors.New("exit program")
 }
