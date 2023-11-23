@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -21,12 +19,17 @@ type cliCommand struct {
 type mapData struct {
 	Count    int    `json:"count"`
 	Next     string `json:"next"`
-	Previous any    `json:"previous"`
+	Previous string `json:"previous"`
 	Results  []struct {
 		Name string `json:"name"`
 		URL  string `json:"url"`
 	} `json:"results"`
 }
+
+var mapState = struct {
+	nextURL string
+	prevURL string
+}{}
 
 func main() {
 	for {
@@ -51,7 +54,14 @@ func main() {
 				return
 			}
 			if commandName == "map" {
-				commandMap()
+				if err := commandMap(); err != nil {
+					fmt.Println("Error fetching maps:", err)
+				}
+			}
+			if commandName == "mapb" {
+				if err := commandMapBack(); err != nil {
+					fmt.Println("Error fetching previous maps:", err)
+				}
 			}
 			fmt.Println()
 		} else {
@@ -76,6 +86,10 @@ func getCLICommands() map[string]cliCommand {
 			name:        "map",
 			description: "Display the map",
 			callback:    commandMap,
+		}, "mapb": {
+			name:        "map",
+			description: "Display the map",
+			callback:    commandMap,
 		},
 	}
 }
@@ -86,29 +100,69 @@ func commandHelp() error {
 }
 
 func commandExit() error {
-	return errors.New("Exit Program")
+	return errors.New("exit program")
 }
 
 func commandMap() error {
-	res, err := http.Get("https://pokeapi.co/api/v2/location/")
+	if mapState.nextURL == "" {
+		mapState.nextURL = "https://pokeapi.co/api/v2/location/"
+	}
+
+	if mapState.nextURL != "" {
+		mapState.prevURL = mapState.nextURL
+	}
+
+	res, err := http.Get(mapState.nextURL)
 	if err != nil {
 		return err
 	}
-	body, err := io.ReadAll(res.Body)
-	res.Body.Close()
-	if res.StatusCode > 299 {
-		log.Fatalf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		return fmt.Errorf("request failed with status code: %d", res.StatusCode)
 	}
+
+	var mapData mapData
+	if err := json.NewDecoder(res.Body).Decode(&mapData); err != nil {
+		return err
+	}
+
+	for _, result := range mapData.Results {
+		fmt.Println(result.Name)
+	}
+
+	mapState.nextURL = mapData.Next // Update the nextURL for the next fetch
+
+	return nil
+}
+
+func commandMapBack() error {
+	if mapState.prevURL == "" {
+		fmt.Println("You're already at the first page")
+		return nil
+	}
+
+	res, err := http.Get(mapState.prevURL)
 	if err != nil {
 		return err
 	}
-	mapJson := mapData{}
-	umarshalErr := json.Unmarshal(body, &mapJson)
+	defer res.Body.Close()
 
-	if umarshalErr != nil {
-		return umarshalErr
+	if res.StatusCode != http.StatusOK {
+		return fmt.Errorf("request failed with status code: %d", res.StatusCode)
 	}
 
-	fmt.Println(mapJson.Results)
+	var mapData mapData
+	if err := json.NewDecoder(res.Body).Decode(&mapData); err != nil {
+		return err
+	}
+
+	for _, result := range mapData.Results {
+		fmt.Println(result.Name)
+	}
+
+	mapState.nextURL = mapState.prevURL // Store current URL as next
+	mapState.prevURL = mapData.Previous // Update the prevURL for the previous fetch
+
 	return nil
 }
