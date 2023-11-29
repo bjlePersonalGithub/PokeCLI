@@ -36,7 +36,6 @@ func main() {
 		fmt.Print("Pokedex > ")
 		userInput := getUserInput()
 		commands := getCLICommands()
-
 		command := commands[userInput]
 		switch strings.ToLower(command.name) {
 		case "help":
@@ -135,6 +134,7 @@ func commandMap() error {
 	}
 
 	mapState.nextURL = mapData.Next // Update the nextURL for the next fetch
+	mapState.prevURL = mapData.Previous
 
 	return nil
 }
