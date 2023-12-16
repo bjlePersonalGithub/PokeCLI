@@ -4,9 +4,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/bjlePersonalGithub/PokeCLI/internal/pokeapi"
 )
 
 func commandMap() error {
+
+	displayData := pokeapi.GetDisplayMap()
+
+	pokeapi.LoadInitialMaps(displayData)
+
 	if mapState.nextURL == "" {
 		mapState.nextURL = "https://pokeapi.co/api/v2/location/"
 	}
