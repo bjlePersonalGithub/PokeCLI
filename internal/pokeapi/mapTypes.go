@@ -2,7 +2,7 @@ package pokeapi
 
 type mapDisplayData struct {
 	CurrentMapData  []string
-	previousMapData []string
+	PreviousMapData []string
 	locationIndex   int
 }
 

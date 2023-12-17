@@ -10,7 +10,7 @@ import (
 func GetInitialDisplayMap() mapDisplayData {
 	return mapDisplayData{
 		CurrentMapData:  make([]string, 0, 20),
-		previousMapData: make([]string, 0, 20),
+		PreviousMapData: nil,
 		locationIndex:   1,
 	}
 }
@@ -36,6 +36,12 @@ func getNewLocationInfo(locationIndex int) (*locationData, error) {
 
 func LoadMaps(displayData *mapDisplayData) error {
 
+	if len(displayData.CurrentMapData) == 20 {
+		displayData.PreviousMapData = displayData.CurrentMapData
+		displayData.CurrentMapData = make([]string, 0, 20)
+		displayData.locationIndex += 1
+	}
+
 	resData, err := getNewLocationInfo(displayData.locationIndex)
 	if err != nil {
 		return err
@@ -43,11 +49,10 @@ func LoadMaps(displayData *mapDisplayData) error {
 
 	for len(displayData.CurrentMapData) < 20 {
 		for i := 0; i < len(resData.Areas); i++ {
-			if len(displayData.CurrentMapData) == 21 {
+			if len(displayData.CurrentMapData) == 20 {
 				break
 			} else {
 				displayData.CurrentMapData = append(displayData.CurrentMapData, resData.Areas[i].Name)
-				displayData.previousMapData = append(displayData.previousMapData, resData.Areas[i].Name)
 			}
 		}
 		displayData.locationIndex += 1
