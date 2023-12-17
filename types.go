@@ -6,6 +6,11 @@ type cliCommand struct {
 	callback    func() error
 }
 
+var mapState = struct {
+	nextURL string
+	prevURL string
+}{}
+
 type mapData struct {
 	Count    int    `json:"count"`
 	Next     string `json:"next"`
@@ -15,8 +20,3 @@ type mapData struct {
 		URL  string `json:"url"`
 	} `json:"results"`
 }
-
-var mapState = struct {
-	nextURL string
-	prevURL string
-}{}

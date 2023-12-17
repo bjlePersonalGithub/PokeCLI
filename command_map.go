@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/bjlePersonalGithub/PokeCLI/internal/pokeapi"
 )
 
@@ -8,8 +10,15 @@ func commandMap() error {
 
 	displayData := pokeapi.GetInitialDisplayMap()
 
-	pokeapi.LoadMaps(displayData)
+	err := pokeapi.LoadMaps(&displayData)
 
+	if err != nil {
+		return err
+	}
+
+	for _, area := range displayData.CurrentMapData {
+		fmt.Println(area)
+	}
 	// if mapState.nextURL == "" {
 	// 	mapState.nextURL = "https://pokeapi.co/api/v2/location/"
 	// }
@@ -32,7 +41,7 @@ func commandMap() error {
 	// if err := json.NewDecoder(res.Body).Decode(&mapData); err != nil {
 	// 	return err
 	// }
-
+	// fmt.Println(mapData)
 	// for _, result := range mapData.Results {
 	// 	fmt.Println(result.Name)
 	// }
