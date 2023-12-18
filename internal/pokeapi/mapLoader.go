@@ -11,12 +11,13 @@ func GetInitialDisplayMap() mapDisplayData {
 	return mapDisplayData{
 		CurrentMapData:  make([]string, 0, 20),
 		PreviousMapData: nil,
-		locationIndex:   1,
+		LocationIndex:   1,
+		AreaIndex:       0,
 	}
 }
 
-func getNewLocationInfo(locationIndex int) (*locationData, error) {
-	res, err := http.Get(locationURL + strconv.Itoa(locationIndex))
+func getLocationInfo(LocationIndex int) (*locationData, error) {
+	res, err := http.Get(locationURL + strconv.Itoa(LocationIndex))
 	if err != nil {
 		return nil, err
 	}
@@ -39,28 +40,34 @@ func LoadMaps(displayData *mapDisplayData) error {
 	if len(displayData.CurrentMapData) == 20 {
 		displayData.PreviousMapData = displayData.CurrentMapData
 		displayData.CurrentMapData = make([]string, 0, 20)
-		displayData.locationIndex += 1
 	}
 
-	resData, err := getNewLocationInfo(displayData.locationIndex)
+	// Load new location
+	resData, err := getLocationInfo(displayData.LocationIndex)
 	if err != nil {
 		return err
 	}
 
+	//Load new areas
 	for len(displayData.CurrentMapData) < 20 {
-		for i := 0; i < len(resData.Areas); i++ {
+		for i := displayData.AreaIndex; i < len(resData.Areas); i++ {
+			// If we reach max of currentMapData capcaity
 			if len(displayData.CurrentMapData) == 20 {
 				break
 			} else {
 				displayData.CurrentMapData = append(displayData.CurrentMapData, resData.Areas[i].Name)
+				displayData.AreaIndex += 1
+			}
+			if i+1 == len(resData.Areas) {
+				displayData.AreaIndex = 0
+				displayData.LocationIndex += 1
 			}
 		}
-		displayData.locationIndex += 1
-		resData, err = getNewLocationInfo(displayData.locationIndex)
+		// If we've reached the end of the areas, load the next locatio
+		resData, err = getLocationInfo(displayData.LocationIndex)
 		if err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
