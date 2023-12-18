@@ -3,8 +3,8 @@ package pokeapi
 type mapDisplayData struct {
 	CurrentMapData  []string
 	PreviousMapData []string
-	LocationIndex   int
-	AreaIndex       int
+	locationIndex   int
+	areaIndex       int
 }
 
 type locationData struct {
