@@ -9,8 +9,6 @@ import (
 func commandMap() error {
 
 	err := pokeapi.LoadMaps(&displayData)
-	fmt.Println(displayData.locationIndex)
-	fmt.Println(displayData.locationIndex)
 	if err != nil {
 		return err
 	}
